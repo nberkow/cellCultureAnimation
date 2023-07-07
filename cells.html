@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Cells</title>
+</head>
+
+<body>
+    <canvas id="canvas" width="4500" height="4500"></canvas>
+    <script type="application/javascript">
+
+        const cols = 30;
+        const rows = 250;
+        const start_col = "#FF0000";
+        const final_col = "#00FF00";
+
+
+        function make_starting_grid(c, r) {
+
+            let grid = [];
+            let float_rows = parseFloat(r);
+            for (let i = 0; i < r; i++) {
+                let row = [];
+                for (let j = 0; j < c; j++) {
+                    cell = {
+                        "visible": Math.random() < (i/(2*float_rows))**.8,
+                        "bald" : Math.random() < 0.1,
+                        "updated": 0,
+                        "color": "blue",
+                        "x_offset": 0.1,
+                        "y_offset": 0.1
+                    };
+                    row.push(cell);
+                }
+                grid.push(row);
+            }
+            return grid;
+        }
+
+        function draw_grid(grid, c, r, a, h, s) {
+
+            for (let i = 0; i < r; i++) {
+                for (let j = 0; j < c; j++) {
+                    cell = grid[i][j]
+                    if (cell["visible"]) {
+                        k = (i % 2) * a * 1.5;
+                        draw_hex(j * a * 3 + k, i * h, a * s, cell["color"]);
+                    }
+                }
+            }
+        }
+
+        function draw_hex(x, y, a, fill_col) {
+            const canvas = document.getElementById("canvas");
+            if (canvas.getContext) {
+                const ctx = canvas.getContext("2d");
+
+                start_x = x - a
+                start_y = y
+
+                ctx.fillStyle = fill_col;
+                ctx.beginPath();
+                ctx.moveTo(start_x, start_y);
+                ctx.lineTo(x - (a / 2), y + (3 ** 0.5 * a / 2));
+                ctx.lineTo(x + (a / 2), y + (3 ** 0.5 * a / 2));
+                ctx.lineTo(x + a, y);
+                ctx.lineTo(x + (a / 2), y - (3 ** 0.5 * a / 2));
+                ctx.lineTo(x - (a / 2), y - (3 ** 0.5 * a / 2));
+                ctx.lineTo(start_x, start_y);
+                ctx.fill();
+            }
+        }
+
+        function iterate(c, r, grid, a, h, s) {           
+            draw_grid(grid, c, r, a, h, s);
+            grid = update_grid(grid, c, r);
+        }
+
+        function get_neighbors(grid, i, j) {
+
+            
+            if (i < 2 || i >= rows - 2) {
+                return [];
+            }
+
+            if (j < 2 || j >= cols - 2) {
+                return [];
+            }
+
+            // even cells are offset to the right
+            offset = (i % 2) - 1;
+
+            neighbors = [
+                [i-2, j],  [i+2, j], 
+                [i+1, j+offset], [i+1, j+offset+1],
+                [i-1, j+offset], [i-1, j+offset+1]
+        ]
+
+            /* Display neighbors 
+            for (let n in neighbors) {
+                let ni = neighbors[n][0];
+                let nj = neighbors[n][1];
+                grid[ni][nj]["color"] = "#000000";
+                grid[ni][nj]["visible"] = true;
+            }
+            grid[i][j]["visible"] = true;
+            grid[i][j]["color"] = "#FF0000";*/
+
+            return neighbors;
+        }
+
+        function update_grid(grid, c, r) {
+            let tot = parseFloat(6);
+
+            for (let a=0; a < (r * c); a++){
+                let i = Math.floor(Math.random() * r);
+                let j = Math.floor(rnorm(c/2, c/5));
+                //if (i >= 0 & i < r & j >=0 & j < c){
+                    if (!grid[i][j]["visible"]){
+                        let neighbors = get_neighbors(grid, i, j);
+                        let live = 0;
+                
+                        for (let n in neighbors) {
+                            let ni = neighbors[n][0];
+                            let nj = neighbors[n][1];
+
+                            if (ni >= 0 & ni < r & nj >= 0 & nj < c){
+                                if (grid[ni][nj]["visible"]){
+                                    live++;
+                                }                
+                            }
+                        }
+
+                        if (Math.random() < (live/tot)**3){
+                            grid[i][j]["visible"] = true;
+                            grid[i][j]["color"] = "#000000";
+                        }
+                    }
+                //}
+            }
+            return grid;
+        }
+
+        function rnorm(mean=0, stdev=1) {
+            const u = 1 - Math.random(); // Converting [0,1) to (0,1]
+            const v = Math.random();
+            const z = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+            return z * stdev + mean;
+        }
+
+        a = 10;               // hexagon side length
+        h = 3 ** 0.5 * a / 2; // component triangle height
+        s = .96;              // scaling 
+
+        grid = make_starting_grid(cols, rows);
+        //iterate(cols, rows, grid, a, h, s);
+        //get_neighbors(grid, 65, 5);
+        //draw_grid(grid, cols, rows, a, h, s) 
+        setInterval(iterate, 1, cols, rows, grid, a, h, s);
+        
+
+    </script>
+</body>
+
+</html>
