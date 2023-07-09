@@ -1,0 +1,6 @@
+#tc-wrapper {
+    display: flex; 
+	justify-content: center; /* center horizontally */ 
+	align-items: center; /* center vertically */ 
+    opacity: 15%;
+}
